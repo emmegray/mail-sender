@@ -18,7 +18,7 @@ Useful for checking how a DEM renders across different clients, specifically the
 
 - Node.js ≥ 18
 - npm or yarn
-- For Gmail: 2-Factor Authentication enabled + App Password generated
+- For Gmail: 2-Factor Authentication enabled + App Password
 - For other providers: Standard SMTP credentials
 
 ## 📦 Installation
