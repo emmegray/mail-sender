@@ -9,7 +9,7 @@ Useful for checking how a DEM renders across different clients, specifically the
 - **Web-based UI**: User-friendly React interface to configure and send emails
 - **Flexible SMTP Configuration**: Choose between pre-configured services (Gmail, Outlook, etc.) or custom SMTP servers
 - **HTML Editor & Dropzone**: Paste HTML directly or drag-and-drop an `.html` file
-- **Secure**: SMTP credentials are **never stored** on the server—only used for sending
+- **Secure**: SMTP credentials are **never stored** on the server only used for sending
 - **Multiple Recipients**: Send to comma-separated email addresses
 - **Live Preview**: Real-time preview of your email template
 - **Browser Storage**: Save your sender settings locally (passwords excluded)
