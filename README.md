@@ -42,7 +42,6 @@ npm install
 mail-sender/
 ├─ html_test/
 │  └─ dem-base.html
-├─ node_modules/
 ├─ src/
 │  ├─ config.js 
 │  └─ send.js
