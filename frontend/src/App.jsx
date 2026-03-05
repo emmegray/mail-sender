@@ -13,6 +13,9 @@ export default function App() {
   const [html, setHtml] = useState(defaultHtml);
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
 
   const [form, setForm] = useState(() => {
     // Carica dal localStorage (senza password!)
@@ -43,6 +46,16 @@ export default function App() {
     const toSave = { ...next };
     delete toSave.pass;
     localStorage.setItem('emailTesterForm', JSON.stringify(toSave));
+  };
+
+  // Applica il tema al DOM
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   const update = (patch) => {
@@ -99,6 +112,10 @@ export default function App() {
 
   return (
     <div className="container">
+      <button className="theme-toggle" onClick={toggleTheme} title="Toggle dark mode">
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
+
       <h1>DEM Email Tester</h1>
       <p className="subtitle">Send your HTML marketing emails to real inboxes (Outlook, Gmail, iCloud...).</p>
 
