@@ -6,7 +6,7 @@ Useful for checking how a DEM renders across different clients.
 The system uses:
 
 - Nodemailer for sending emails
-- Gmail App PAsswords as SMTP
+- Gmail App Passwords as SMTP
 - Environment variables via dotenv to keep you credentials safe
 - A customizable dem.html file containing your email template
 
