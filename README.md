@@ -1,7 +1,7 @@
 # 📬 DEM email tester with Node.js
 
 A simple Node.js project for sending HTML email tests to inboxes such as Outlook, Gmail and more.
-Useful for checking how a DEM renders across different clients.
+Useful for checking how a DEM renders across different clients, specifically the damned classic Outlook, I hate you ᕙ( ︡'︡益'︠)ง 💢
 
 The system uses:
 
