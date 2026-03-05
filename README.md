@@ -2,7 +2,7 @@
 
 A full-stack application for testing and sending HTML email templates (DEM) to real inboxes like Gmail, Outlook, Yahoo, and more.
 
-Perfect for checking how your marketing emails render across different email clients especially that incredibly finicky Outlook 💢
+Useful for checking how a DEM renders across different clients, specifically the damned classic Outlook, I hate you ᕙ( ︡'︡益'︠)ง 💢
 
 ## 🎯 Features
 
