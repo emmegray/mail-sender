@@ -58,6 +58,14 @@ export default function App() {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  // Inietta CSS di styling nel preview basato sul tema
+  const getStyledHtml = (htmlContent) => {
+    const styles = theme === 'dark' 
+      ? `<style>body { background: #1e293b; color: #f1f5f9; font-family: Arial, sans-serif; }</style>`
+      : `<style>body { background: #ffffff; color: #111827; font-family: Arial, sans-serif; }</style>`;
+    return styles + htmlContent;
+  };
+
   const update = (patch) => {
     const next = { ...form, ...patch };
     setForm(next);
@@ -136,8 +144,8 @@ export default function App() {
             <iframe
               title="email-preview"
               sandbox="allow-same-origin allow-scripts"
-              srcDoc={html}
-              style={{ width: '100%', height: 400, border: '1px solid #ddd' }}
+              srcDoc={getStyledHtml(html)}
+              style={{ width: '100%', height: 400, border: `1px solid var(--border)` }}
             />
           </div>
 
