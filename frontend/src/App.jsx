@@ -18,7 +18,7 @@ export default function App() {
   });
 
   const [form, setForm] = useState(() => {
-    // Carica dal localStorage (senza password!)
+    // Load from localStorage (without password!)
     const saved = JSON.parse(localStorage.getItem('emailTesterForm') || '{}');
     return {
       // Transport (default Gmail)
@@ -29,8 +29,8 @@ export default function App() {
       secure: saved.secure ?? false,
 
       // Auth
-      user: saved.user || '',       // (non sensibile, ok salvare se vuoi)
-      pass: '',                     // MAI salvata
+      user: saved.user || '',       // (not sensitive, ok to save if you want)
+      pass: '',                     // NEVER saved
 
       // Email
       fromName: saved.fromName || 'Test DEM',
@@ -41,14 +41,14 @@ export default function App() {
     };
   });
 
-  // Salva (tranne pass) ad ogni modifica
+  // Save (except pass) on every change
   const persist = (next) => {
     const toSave = { ...next };
     delete toSave.pass;
     localStorage.setItem('emailTesterForm', JSON.stringify(toSave));
   };
 
-  // Applica il tema al DOM
+  // Apply the theme to the DOM
   React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
@@ -58,7 +58,7 @@ export default function App() {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  // Inietta CSS di styling nel preview basato sul tema
+  // Inject styling CSS into the preview based on the theme
   const getStyledHtml = (htmlContent) => {
     const styles = theme === 'dark' 
       ? `<style>body { background: #1e293b; color: #f1f5f9; font-family: Arial, sans-serif; }</style>`

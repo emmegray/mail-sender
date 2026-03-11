@@ -8,7 +8,7 @@ export function createTransporter({
   user,
   pass
 }) {
-  // Se viene passato "service" (es: 'gmail'), usiamolo
+  // If "service" is passed (e.g., 'gmail'), use it
   if (service) {
     return nodemailer.createTransport({
       service,
@@ -16,7 +16,7 @@ export function createTransporter({
     });
   }
 
-  // Altrimenti config custom
+  // Otherwise custom config
   return nodemailer.createTransport({
     host,
     port: Number(port) || 587,
@@ -36,7 +36,7 @@ export async function sendEmail({
 }) {
   const transporter = createTransporter(transportConfig);
 
-  // (opzionale ma utile) verifica connessione e credenziali
+  // (optional but useful) verify connection and credentials
   await transporter.verify();
 
   const results = [];

@@ -8,16 +8,16 @@ import { sendEmail } from './mailer.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Middlewares
 app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.use(cors({
-  origin: true, // consenti il frontend in locale
+  origin: true, // allow local frontend
   credentials: false
 }));
 app.use(express.json({ limit: '2mb' }));
 app.use(morgan('dev'));
 
-// Schema di validazione
+// Validation schema
 const TransportConfigSchema = z.union([
   z.object({
     service: z.string().min(2, 'service is required when using service-based config'),
@@ -55,7 +55,7 @@ app.post('/api/send', async (req, res) => {
   try {
     const parsed = SendBodySchema.parse(req.body);
 
-    // Nota sicurezza: nessuna credenziale viene salvata lato server
+    // Security note: no credentials are saved on the server
     const results = await sendEmail(parsed);
 
     res.json({ ok: true, results });
