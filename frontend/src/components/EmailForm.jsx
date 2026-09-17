@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function EmailForm({ form, onChange, onSend, sending }) {
+export default function EmailForm({ form, onChange, onSend, sending, captchaContainerRef, captchaEnabled, captchaError }) {
   return (
     <div className="card">
       <h2>Settings</h2>
@@ -84,6 +84,11 @@ export default function EmailForm({ form, onChange, onSend, sending }) {
       <div className="row">
         <label>Plain Text (optional)</label>
         <textarea rows="3" value={form.text} onChange={e => onChange({ text: e.target.value })} placeholder="Text-only fallback"/>
+      </div>
+
+      <div className="captcha-box">
+        {captchaEnabled ? <div ref={captchaContainerRef} /> : <small>CAPTCHA is not configured for this deployment.</small>}
+        {captchaError && <small className="captcha-error">{captchaError}</small>}
       </div>
 
       <button className="send-btn" onClick={onSend} disabled={sending}>

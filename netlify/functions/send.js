@@ -7,6 +7,29 @@ const RATE_LIMIT_MAX = 5;
 const ALLOWED_SERVICES = new Set(['gmail', 'hotmail', 'outlook', 'yahoo', 'mailtrap']);
 const requestLog = new Map();
 
+const getSiteOrigin = (event) => {
+  if (process.env.URL) return process.env.URL;
+  if (event.rawUrl) return new URL(event.rawUrl).origin;
+  return `https://${event.headers?.host}`;
+};
+
+const verifyIdentity = async (event, authorization) => {
+  if (!authorization?.startsWith('Bearer ')) return false;
+  const response = await fetch(`${getSiteOrigin(event)}/.netlify/identity/user`, {
+    headers: { Authorization: authorization }
+  });
+  return response.ok;
+};
+
+const verifyCaptcha = async (token, ip) => {
+  if (!process.env.HCAPTCHA_SECRET || !token) return false;
+  const body = new URLSearchParams({ secret: process.env.HCAPTCHA_SECRET, response: token });
+  if (ip !== 'unknown') body.set('remoteip', ip);
+  const response = await fetch('https://hcaptcha.com/siteverify', { method: 'POST', body });
+  const result = await response.json();
+  return result.success === true;
+};
+
 const json = (statusCode, body) => ({
   statusCode,
   headers: {
@@ -62,6 +85,13 @@ export const handler = async (event) => {
   if (isRateLimited(ip)) return json(429, { ok: false, error: 'RATE_LIMITED', message: 'Too many send attempts. Please try again later.' });
 
   try {
+    if (!(await verifyIdentity(event, event.headers?.authorization || event.headers?.Authorization))) {
+      return json(401, { ok: false, error: 'AUTH_REQUIRED', message: 'Sign in is required.' });
+    }
+    if (!(await verifyCaptcha(event.headers?.['x-hcaptcha-token'], ip))) {
+      return json(403, { ok: false, error: 'CAPTCHA_REQUIRED', message: 'CAPTCHA verification failed.' });
+    }
+
     if (Buffer.byteLength(event.body || '', 'utf8') > MAX_BODY_BYTES) {
       return json(413, { ok: false, error: 'PAYLOAD_TOO_LARGE', message: 'The email content is too large.' });
     }

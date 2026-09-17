@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import EmailForm from './components/EmailForm.jsx';
 import HtmlDropzone from './components/HtmlDropzone.jsx';
 import axios from 'axios';
+import netlifyIdentity from 'netlify-identity-widget';
 
 const defaultHtml = `<!-- Drop your DEM HTML or paste here -->
 <h1 style="font-family:Arial,sans-serif">Hello!</h1>
@@ -11,6 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'ht
 const DELIVERY_GIF_URL = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzV1Y2Jsd3NmbHJnM2xmNjJ5ZWhmazBkeW1teDRyemE4NzAzejk3bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/sIayC6DgB9QOsPj4jd/giphy.gif';
 const DELIVERY_SUCCESS_GIF_URL = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDJobmtyNWdqc3ZlMnh5Ym15ZnJ1Yjg4bmJ4d2MwbmI4ZDNpaXRldSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XTy2LXPJDaCTvCH859/giphy.gif';
 const DELIVERY_FAILURE_GIF_URL = 'https://i.imgur.com/4pftrxu.gif';
+const HCAPTCHA_SITE_KEY = import.meta.env.VITE_HCAPTCHA_SITE_KEY;
 
 const getSendErrorMessage = (err) => {
   const response = err?.response?.data;
@@ -36,6 +38,12 @@ export default function App() {
   const [html, setHtml] = useState(defaultHtml);
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
+  const [user, setUser] = useState(null);
+  const [identityReady, setIdentityReady] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+  const captchaContainerRef = useRef(null);
+  const captchaWidgetRef = useRef(null);
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'light';
   });
@@ -63,6 +71,59 @@ export default function App() {
       text: saved.text || ''
     };
   });
+
+  useEffect(() => {
+    const handleLogin = (loggedInUser) => {
+      setUser(loggedInUser);
+      netlifyIdentity.close();
+    };
+    const handleLogout = () => setUser(null);
+
+    netlifyIdentity.on('login', handleLogin);
+    netlifyIdentity.on('logout', handleLogout);
+    netlifyIdentity.init();
+    setUser(netlifyIdentity.currentUser());
+    setIdentityReady(true);
+
+    return () => {
+      netlifyIdentity.off('login', handleLogin);
+      netlifyIdentity.off('logout', handleLogout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user || !HCAPTCHA_SITE_KEY || !captchaContainerRef.current) return undefined;
+
+    let script = document.querySelector('script[src="https://js.hcaptcha.com/1/api.js"]');
+    const renderCaptcha = () => {
+      if (!captchaContainerRef.current || captchaWidgetRef.current !== null || !window.hcaptcha) return;
+      captchaWidgetRef.current = window.hcaptcha.render(captchaContainerRef.current, {
+        sitekey: HCAPTCHA_SITE_KEY,
+        callback: setCaptchaToken,
+        'expired-callback': () => setCaptchaToken(''),
+        'error-callback': () => setCaptchaError('CAPTCHA could not be loaded. Please try again.')
+      });
+    };
+
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://js.hcaptcha.com/1/api.js';
+      script.async = true;
+      script.defer = true;
+      script.onload = renderCaptcha;
+      document.head.appendChild(script);
+    } else {
+      renderCaptcha();
+    }
+
+    return () => {
+      if (captchaWidgetRef.current !== null && window.hcaptcha) {
+        window.hcaptcha.reset(captchaWidgetRef.current);
+      }
+      captchaWidgetRef.current = null;
+      setCaptchaToken('');
+    };
+  }, [user]);
 
   // Save (except pass) on every change
   const persist = (next) => {
@@ -102,6 +163,15 @@ export default function App() {
   );
 
   const handleSend = async () => {
+    if (!user) {
+      setResult({ ok: false, recipients: toList, details: 'Please sign in before sending email.' });
+      return;
+    }
+    if (!HCAPTCHA_SITE_KEY || !captchaToken) {
+      setResult({ ok: false, recipients: toList, details: 'Please complete the CAPTCHA before sending.' });
+      return;
+    }
+
     setSending(true);
     setResult({ ok: null, recipients: toList });
     try {
@@ -125,8 +195,14 @@ export default function App() {
         text: form.text || undefined
       };
 
+      const identityToken = await user.jwt();
+
       const { data } = await axios.post(`${API_URL}/api/send`, payload, {
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${identityToken}`,
+          'X-HCaptcha-Token': captchaToken
+        }
       });
 
       setResult({ ok: data.ok, recipients: toList, results: data.results });
@@ -138,21 +214,49 @@ export default function App() {
       });
     } finally {
       setSending(false);
+      if (captchaWidgetRef.current !== null && window.hcaptcha) {
+        window.hcaptcha.reset(captchaWidgetRef.current);
+      }
+      setCaptchaToken('');
     }
   };
+
+  if (!identityReady) return <div className="auth-screen">Loading secure access…</div>;
+
+  if (!user) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <h1>DEM Email Tester</h1>
+          <p>Sign in to access the email tester.</p>
+          <button className="send-btn" onClick={() => netlifyIdentity.open('login')}>Sign in</button>
+          <button className="auth-link" onClick={() => netlifyIdentity.open('signup')}>Create an account</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
       <button className="theme-toggle" onClick={toggleTheme} title="Toggle dark mode">
         {theme === 'light' ? '🌙' : '☀️'}
       </button>
+      <button className="logout-btn" onClick={() => netlifyIdentity.logout()}>Sign out</button>
 
       <h1>DEM Email Tester</h1>
       <p className="subtitle">Send your HTML marketing emails to real inboxes (Outlook, Gmail, iCloud...).</p>
 
       <div className="grid">
         <div className="panel">
-          <EmailForm form={form} onChange={update} onSend={handleSend} sending={sending} />
+          <EmailForm
+            form={form}
+            onChange={update}
+            onSend={handleSend}
+            sending={sending}
+            captchaContainerRef={captchaContainerRef}
+            captchaEnabled={Boolean(HCAPTCHA_SITE_KEY)}
+            captchaError={captchaError}
+          />
           {result && (
             <div className={`result ${result.ok === null ? 'sending' : result.ok ? 'ok' : 'err'}`}>
               <div className="delivery-scene" aria-hidden="true">

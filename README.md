@@ -151,16 +151,28 @@ npm run build
 pm2 start backend/src/server.js
 ```
 
-## Deploy su Netlify
+## Deploy to Netlify
 
-Il repository include già `netlify.toml` e una Netlify Function in `netlify/functions/send.js`.
-La configurazione pubblica il frontend Vite e inoltra `/api/send` alla Function, quindi in produzione non serve un server Express separato.
+The repository already includes `netlify.toml` and a Netlify Function in `netlify/functions/send.js`.
+The configuration publishes the Vite frontend and routes `/api/send` to the Function, so a separate Express server is not needed in production.
 
-1. Importa il repository in Netlify.
-2. Lascia vuoti Build command e Publish directory: sono già definiti in `netlify.toml`.
-3. Imposta Node.js 18 o superiore nelle impostazioni del progetto.
-4. Deploya il sito. Il frontend userà automaticamente `/api/send` sullo stesso dominio.
+1. Import the repository into Netlify.
+2. Leave Build command and Publish directory empty: they are already defined in `netlify.toml`.
+3. Set Node.js 18 or later in the project settings.
+4. Deploy the site. The frontend will automatically use `/api/send` on the same domain.
 
-Per lo sviluppo locale resta valido il backend Express su `http://localhost:5000`. In Netlify non inserire credenziali SMTP nelle variabili d'ambiente: le credenziali vengono inserite dall'utente nel browser e usate solo per la singola richiesta.
+For local development, the Express backend remains available at `http://localhost:5000`. Do not add SMTP credentials to Netlify environment variables: users enter their credentials in the browser, and they are used only for the individual request.
 
-Per sicurezza, la Netlify Function accetta solo i servizi SMTP preconfigurati. La modalità Custom SMTP resta disabilitata nel deploy pubblico; riattivala solo in un ambiente controllato impostando `ALLOW_CUSTOM_SMTP=true` nelle variabili Netlify.
+For security, the Netlify Function accepts only the preconfigured SMTP services. Custom SMTP is disabled on the public deployment; enable it only in a controlled environment by setting `ALLOW_CUSTOM_SMTP=true` in the Netlify environment variables.
+
+### Protected Public Access
+
+Before deploying:
+
+1. Enable **Identity** in Netlify and set registration to invite-only if the app should remain private.
+2. Create an hCaptcha site and add these variables in the Netlify settings:
+   - `VITE_HCAPTCHA_SITE_KEY`: public hCaptcha site key.
+   - `HCAPTCHA_SECRET`: private hCaptcha secret, available only to Functions.
+3. Add authorized users to Netlify Identity and send them an invitation.
+
+The app displays the form only after Netlify Identity login. Every send request must also contain a valid hCaptcha token; the Function verifies both tokens server-side.
