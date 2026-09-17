@@ -150,3 +150,15 @@ npm run build
 ```bash
 pm2 start backend/src/server.js
 ```
+
+## Deploy su Netlify
+
+Il repository include già `netlify.toml` e una Netlify Function in `netlify/functions/send.js`.
+La configurazione pubblica il frontend Vite e inoltra `/api/send` alla Function, quindi in produzione non serve un server Express separato.
+
+1. Importa il repository in Netlify.
+2. Lascia vuoti Build command e Publish directory: sono già definiti in `netlify.toml`.
+3. Imposta Node.js 18 o superiore nelle impostazioni del progetto.
+4. Deploya il sito. Il frontend userà automaticamente `/api/send` sullo stesso dominio.
+
+Per lo sviluppo locale resta valido il backend Express su `http://localhost:5000`. In Netlify non inserire credenziali SMTP nelle variabili d'ambiente: le credenziali vengono inserite dall'utente nel browser e usate solo per la singola richiesta.

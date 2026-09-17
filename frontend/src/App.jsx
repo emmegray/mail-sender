@@ -7,7 +7,7 @@ const defaultHtml = `<!-- Drop your DEM HTML or paste here -->
 <h1 style="font-family:Arial,sans-serif">Hello!</h1>
 <p>This is a test email.</p>`;
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 const DELIVERY_GIF_URL = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzV1Y2Jsd3NmbHJnM2xmNjJ5ZWhmazBkeW1teDRyemE4NzAzejk3bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/sIayC6DgB9QOsPj4jd/giphy.gif';
 const DELIVERY_SUCCESS_GIF_URL = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDJobmtyNWdqc3ZlMnh5Ym15ZnJ1Yjg4bmJ4d2MwbmI4ZDNpaXRldSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XTy2LXPJDaCTvCH859/giphy.gif';
 const DELIVERY_FAILURE_GIF_URL = 'https://i.imgur.com/4pftrxu.gif';
