@@ -87,7 +87,7 @@ export default function EmailForm({ form, onChange, onSend, sending, captchaCont
       </div>
 
       <div className="captcha-box">
-        {captchaEnabled ? <div ref={captchaContainerRef} /> : <small>CAPTCHA is not configured for this deployment.</small>}
+        {captchaEnabled ? <div ref={captchaContainerRef} /> : <small className="captcha-error">CAPTCHA is not configured. Add `VITE_HCAPTCHA_SITE_KEY` to the frontend environment and redeploy.</small>}
         {captchaError && <small className="captcha-error">{captchaError}</small>}
       </div>
 

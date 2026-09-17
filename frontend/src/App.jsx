@@ -175,7 +175,7 @@ export default function App() {
       return;
     }
     if (!HCAPTCHA_SITE_KEY || !captchaToken) {
-      setResult({ ok: false, recipients: toList, details: 'Please complete the CAPTCHA before sending.' });
+        setResult({ ok: false, recipients: toList, details: HCAPTCHA_SITE_KEY ? 'Please complete the CAPTCHA before sending.' : 'CAPTCHA is not configured. Add VITE_HCAPTCHA_SITE_KEY in Netlify and redeploy.' });
       return;
     }
 

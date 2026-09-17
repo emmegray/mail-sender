@@ -175,4 +175,6 @@ Before deploying:
    - `HCAPTCHA_SECRET`: private hCaptcha secret, available only to Functions.
 3. Add authorized users to Netlify Identity and send them an invitation.
 
+`VITE_HCAPTCHA_SITE_KEY` is read at build time. Set it before every Netlify deploy and trigger a new deploy after changing it; adding the variable without rebuilding will leave the CAPTCHA unavailable in the frontend.
+
 The app displays the form only after Netlify Identity login. Every send request must also contain a valid hCaptcha token; the Function verifies both tokens server-side.
