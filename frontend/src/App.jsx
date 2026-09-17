@@ -8,6 +8,29 @@ const defaultHtml = `<!-- Drop your DEM HTML or paste here -->
 <p>This is a test email.</p>`;
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const DELIVERY_GIF_URL = 'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzV1Y2Jsd3NmbHJnM2xmNjJ5ZWhmazBkeW1teDRyemE4NzAzejk3bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/sIayC6DgB9QOsPj4jd/giphy.gif';
+const DELIVERY_SUCCESS_GIF_URL = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDJobmtyNWdqc3ZlMnh5Ym15ZnJ1Yjg4bmJ4d2MwbmI4ZDNpaXRldSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XTy2LXPJDaCTvCH859/giphy.gif';
+const DELIVERY_FAILURE_GIF_URL = 'https://i.imgur.com/4pftrxu.gif';
+
+const getSendErrorMessage = (err) => {
+  const response = err?.response?.data;
+  const details = response?.details;
+  const serializedDetails = JSON.stringify(details || response?.message || err?.message || '').toLowerCase();
+
+  if (serializedDetails.includes('pass') && (serializedDetails.includes('required') || serializedDetails.includes('too_small'))) {
+    return 'Inserisci una password SMTP di almeno 8 caratteri.';
+  }
+
+  if (/invalid login|authentication|auth|535|password.*(wrong|incorrect|invalid)/i.test(serializedDetails)) {
+    return 'La password SMTP non è corretta. Controlla la password app e riprova.';
+  }
+
+  if (response?.error === 'VALIDATION_ERROR') {
+    return 'Controlla i dati inseriti: email, destinatari e configurazione SMTP devono essere validi.';
+  }
+
+  return response?.message || err?.message || 'Si è verificato un errore durante l’invio.';
+};
 
 export default function App() {
   const [html, setHtml] = useState(defaultHtml);
@@ -80,7 +103,7 @@ export default function App() {
 
   const handleSend = async () => {
     setSending(true);
-    setResult(null);
+    setResult({ ok: null, recipients: toList });
     try {
       const transportConfig =
         form.mode === 'service'
@@ -89,7 +112,7 @@ export default function App() {
 
       // Gmail: FROM deve combaciare con USER
       if (form.service === 'gmail' && form.mode === 'service' && form.fromEmail !== form.user) {
-        throw new Error('When using Gmail service, FROM_EMAIL must match SMTP_USER.');
+        throw new Error('Con Gmail, il mittente deve corrispondere all’utente SMTP.');
       }
 
       const payload = {
@@ -106,12 +129,12 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      setResult({ ok: data.ok, results: data.results });
+      setResult({ ok: data.ok, recipients: toList, results: data.results });
     } catch (err) {
       setResult({
         ok: false,
-        error: err?.response?.data?.error || 'CLIENT_ERROR',
-        details: err?.response?.data?.details || err.message
+        recipients: toList,
+        details: getSendErrorMessage(err)
       });
     } finally {
       setSending(false);
@@ -131,8 +154,29 @@ export default function App() {
         <div className="panel">
           <EmailForm form={form} onChange={update} onSend={handleSend} sending={sending} />
           {result && (
-            <div className={`result ${result.ok ? 'ok' : 'err'}`}>
-              <pre>{JSON.stringify(result, null, 2)}</pre>
+            <div className={`result ${result.ok === null ? 'sending' : result.ok ? 'ok' : 'err'}`}>
+              <div className="delivery-scene" aria-hidden="true">
+                <div className={`delivery-gif-slot ${result.ok === null ? 'sending' : result.ok ? 'success' : 'failure'}`}>
+                  {result.ok === null && <img className="delivery-gif" src={DELIVERY_GIF_URL} alt="" />}
+                  {result.ok === true && <img className="delivery-gif" src={DELIVERY_SUCCESS_GIF_URL} alt="" />}
+                  {result.ok === false && <img className="delivery-gif" src={DELIVERY_FAILURE_GIF_URL} alt="" />}
+                </div>
+                {result.ok !== null && (
+                  <span className={`delivery-mark ${result.ok ? 'success' : 'failure'}`}>
+                    {result.ok ? '✓' : '×'}
+                  </span>
+                )}
+              </div>
+              <div className="result-copy">
+                <strong>
+                  {result.ok === null ? 'Invio in corso…' : result.ok ? 'Invio completato' : 'Invio non riuscito'}
+                </strong>
+                <span>
+                  {result.ok === null ? 'Invio a' : result.ok ? 'Email inviata a' : 'Problema durante l’invio a'}:{' '}
+                  {result.recipients?.join(', ') || 'nessun destinatario'}
+                </span>
+                {result.ok === false && <small>{result.details}</small>}
+              </div>
             </div>
           )}
         </div>
