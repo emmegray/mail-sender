@@ -18,18 +18,18 @@ const getSendErrorMessage = (err) => {
   const serializedDetails = JSON.stringify(details || response?.message || err?.message || '').toLowerCase();
 
   if (serializedDetails.includes('pass') && (serializedDetails.includes('required') || serializedDetails.includes('too_small'))) {
-    return 'Inserisci una password SMTP di almeno 8 caratteri.';
+    return 'Enter an SMTP password with at least 8 characters.';
   }
 
   if (/invalid login|authentication|auth|535|password.*(wrong|incorrect|invalid)/i.test(serializedDetails)) {
-    return 'La password SMTP non è corretta. Controlla la password app e riprova.';
+    return 'The SMTP password is incorrect. Check your app password and try again.';
   }
 
   if (response?.error === 'VALIDATION_ERROR') {
-    return 'Controlla i dati inseriti: email, destinatari e configurazione SMTP devono essere validi.';
+    return 'Check your details: email addresses, recipients, and SMTP settings must be valid.';
   }
 
-  return response?.message || err?.message || 'Si è verificato un errore durante l’invio.';
+  return response?.message || err?.message || 'An error occurred while sending the email.';
 };
 
 export default function App() {
@@ -112,7 +112,7 @@ export default function App() {
 
       // Gmail: FROM deve combaciare con USER
       if (form.service === 'gmail' && form.mode === 'service' && form.fromEmail !== form.user) {
-        throw new Error('Con Gmail, il mittente deve corrispondere all’utente SMTP.');
+        throw new Error('With Gmail, the sender must match the SMTP user.');
       }
 
       const payload = {
@@ -169,11 +169,11 @@ export default function App() {
               </div>
               <div className="result-copy">
                 <strong>
-                  {result.ok === null ? 'Invio in corso…' : result.ok ? 'Invio completato' : 'Invio non riuscito'}
+                  {result.ok === null ? 'Sending…' : result.ok ? 'Email sent' : 'Sending failed'}
                 </strong>
                 <span>
-                  {result.ok === null ? 'Invio a' : result.ok ? 'Email inviata a' : 'Problema durante l’invio a'}:{' '}
-                  {result.recipients?.join(', ') || 'nessun destinatario'}
+                  {result.ok === null ? 'Sending to' : result.ok ? 'Email sent to' : 'Problem sending to'}:{' '}
+                  {result.recipients?.join(', ') || 'no recipients'}
                 </span>
                 {result.ok === false && <small>{result.details}</small>}
               </div>
