@@ -40,6 +40,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [user, setUser] = useState(null);
   const [identityReady, setIdentityReady] = useState(false);
+  const [identityError, setIdentityError] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaError, setCaptchaError] = useState('');
   const captchaContainerRef = useRef(null);
@@ -78,9 +79,14 @@ export default function App() {
       netlifyIdentity.close();
     };
     const handleLogout = () => setUser(null);
+    const handleIdentityError = () => {
+      setIdentityError('Netlify Identity is not available on this address. Enable Identity on the Netlify site or run the app with netlify dev.');
+      setIdentityReady(true);
+    };
 
     netlifyIdentity.on('login', handleLogin);
     netlifyIdentity.on('logout', handleLogout);
+    netlifyIdentity.on('error', handleIdentityError);
     netlifyIdentity.init();
     setUser(netlifyIdentity.currentUser());
     setIdentityReady(true);
@@ -88,6 +94,7 @@ export default function App() {
     return () => {
       netlifyIdentity.off('login', handleLogin);
       netlifyIdentity.off('logout', handleLogout);
+      netlifyIdentity.off('error', handleIdentityError);
     };
   }, []);
 
@@ -228,9 +235,15 @@ export default function App() {
       <div className="auth-screen">
         <div className="auth-card">
           <h1>DEM Email Tester</h1>
-          <p>Sign in to access the email tester.</p>
-          <button className="send-btn" onClick={() => netlifyIdentity.open('login')}>Sign in</button>
-          <button className="auth-link" onClick={() => netlifyIdentity.open('signup')}>Create an account</button>
+          {identityError ? (
+            <p className="auth-error">{identityError}</p>
+          ) : (
+            <>
+              <p>Sign in to access the email tester.</p>
+              <button className="send-btn" onClick={() => netlifyIdentity.open('login')}>Sign in</button>
+              <button className="auth-link" onClick={() => netlifyIdentity.open('signup')}>Create an account</button>
+            </>
+          )}
         </div>
       </div>
     );

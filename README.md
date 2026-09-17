@@ -161,7 +161,7 @@ The configuration publishes the Vite frontend and routes `/api/send` to the Func
 3. Set Node.js 18 or later in the project settings.
 4. Deploy the site. The frontend will automatically use `/api/send` on the same domain.
 
-For local development, the Express backend remains available at `http://localhost:5000`. Do not add SMTP credentials to Netlify environment variables: users enter their credentials in the browser, and they are used only for the individual request.
+For local development, the Express backend remains available at `http://localhost:5000`. To test Netlify Identity and Functions locally, install the Netlify CLI, link the project to the Netlify site, and run `netlify dev`; open `http://localhost:8888` instead of the Vite port. Do not add SMTP credentials to Netlify environment variables: users enter their credentials in the browser, and they are used only for the individual request.
 
 For security, the Netlify Function accepts only the preconfigured SMTP services. Custom SMTP is disabled on the public deployment; enable it only in a controlled environment by setting `ALLOW_CUSTOM_SMTP=true` in the Netlify environment variables.
 
