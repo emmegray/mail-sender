@@ -162,3 +162,5 @@ La configurazione pubblica il frontend Vite e inoltra `/api/send` alla Function,
 4. Deploya il sito. Il frontend userà automaticamente `/api/send` sullo stesso dominio.
 
 Per lo sviluppo locale resta valido il backend Express su `http://localhost:5000`. In Netlify non inserire credenziali SMTP nelle variabili d'ambiente: le credenziali vengono inserite dall'utente nel browser e usate solo per la singola richiesta.
+
+Per sicurezza, la Netlify Function accetta solo i servizi SMTP preconfigurati. La modalità Custom SMTP resta disabilitata nel deploy pubblico; riattivala solo in un ambiente controllato impostando `ALLOW_CUSTOM_SMTP=true` nelle variabili Netlify.

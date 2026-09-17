@@ -187,7 +187,7 @@ export default function App() {
             <div className="preview-header">Preview</div>
             <iframe
               title="email-preview"
-              sandbox="allow-same-origin allow-scripts"
+              sandbox="allow-same-origin"
               srcDoc={getStyledHtml(html)}
               style={{ width: '100%', height: 400, border: `1px solid var(--border)` }}
             />
